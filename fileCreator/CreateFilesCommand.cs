@@ -116,7 +116,8 @@ namespace fileCreator
                 menuCommand.Visible = true;
                 menuCommand.Enabled = true;
 
-                System.IO.File.Create(itemFullPath + "testFile.cs");
+                var myFile = File.Create(itemFullPath + "testFile.cs");
+                myFile.Close();
 
                 testTemplate page = new testTemplate();
                 String pageContent = page.TransformText();
