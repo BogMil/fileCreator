@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+
+  <Extern href="vsshlids.h"/>
+
+  <Commands package="guidCreateFilesCommandPackage">
+    <Groups>
+      <Group guid="guidCreateFilesCommandPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+        <!--<Parent guid="guidSHLMainMenu" id="IDM_VS_TOOL_PROJWIN"/>-->
+      </Group>
+    </Groups>
+
+    <!--Buttons section. -->
+    <!--This section defines the elements the user can interact with, like a menu command or a button
+        or combo box in a toolbar. -->
+    <Buttons>
+      <!--To define a menu group you have to specify its ID, the parent menu and its display priority.
+          The command is visible and enabled by default. If you need to change the visibility, status, etc, you can use
+          the CommandFlag node.
+          You can add more than one CommandFlag node e.g.:
+              <CommandFlag>DefaultInvisible</CommandFlag>
+              <CommandFlag>DynamicVisibility</CommandFlag>
+          If you do not want an image next to your command, remove the Icon node /> -->
+      <Button guid="guidCreateFilesCommandPackageCmdSet" id="CreateFilesCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidCreateFilesCommandPackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Invoke CreateFilesCommand</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+
+    <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
+    <Bitmaps>
+      <Bitmap guid="guidImages" href="Resources\CreateFilesCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
+    </Bitmaps>
+  </Commands>
+
+  <CommandPlacements>
+    <CommandPlacement guid="guidCreateFilesCommandPackageCmdSet" id="MyMenuGroup" priority="0xFFFF">
+      <!-- The parent of the group will be the file context menu -->
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE"/>
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <Symbols>
+    <!-- This is the package guid. -->
+    <GuidSymbol name="guidCreateFilesCommandPackage" value="{52230091-8113-4376-8d06-ad35ebc37c70}" />
+
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidCreateFilesCommandPackageCmdSet" value="{c8416d06-a50b-4386-9cee-2f08f5af1dc9}">
+      <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="CreateFilesCommandId" value="0x0100" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidImages" value="{85d5f08d-632e-4276-8f65-a011732bd640}" >
+      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="bmpPic2" value="2" />
+      <IDSymbol name="bmpPicSearch" value="3" />
+      <IDSymbol name="bmpPicX" value="4" />
+      <IDSymbol name="bmpPicArrows" value="5" />
+      <IDSymbol name="bmpPicStrikethrough" value="6" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
