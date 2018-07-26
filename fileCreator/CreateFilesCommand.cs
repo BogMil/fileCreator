@@ -182,6 +182,26 @@ namespace fileCreator
                     return false; // hierarchy is not a project inside the Solution if it does not have a ProjectID Guid
                 }
 
+                var x = hierarchy.GetActiveProjectContext();
+
+                var z = solution.GetProjrefOfProject(hierarchy, out var pbrstProjref);
+                solution.GetUniqueNameOfProject(hierarchy, out var ProjName);
+                solution.GetGuidOfProject(hierarchy, out Guid projectGuid);
+                solution.GetProjectOfGuid(projectGuid, out IVsHierarchy Project);
+
+                var proj = Project;
+                var guid = projectGuid;
+                var p = ProjName;
+                var u = pbrstProjref;
+
+                DTE dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
+                var activeProjects = dte.ActiveSolutionProjects as Array;
+
+                foreach (Project ap in activeProjects)
+                {
+                    var gid = ap.FullName;
+                }
+
                 // if we got this far then there is a single project item selected
                 return true;
             }
