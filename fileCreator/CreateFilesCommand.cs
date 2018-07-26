@@ -3,6 +3,7 @@ using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -116,6 +117,10 @@ namespace fileCreator
                 menuCommand.Visible = true;
                 menuCommand.Enabled = true;
 
+
+                string startupPath = Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory())); ;
+
+
                 var myFile = File.Create(itemFullPath + "testFile.cs");
                 myFile.Close();
 
@@ -125,7 +130,7 @@ namespace fileCreator
 
                 VsShellUtilities.ShowMessageBox(
                 this.ServiceProvider,
-                itemFullPath,
+                startupPath,
                 "Titl",
                 OLEMSGICON.OLEMSGICON_INFO,
                 OLEMSGBUTTON.OLEMSGBUTTON_OK,
