@@ -197,10 +197,14 @@ namespace fileCreator
                 DTE dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
                 var activeProjects = dte.ActiveSolutionProjects as Array;
 
+                string projFullName;
+
                 foreach (Project ap in activeProjects)
                 {
-                    var gid = ap.FullName;
+                    projFullName = ap.FullName;
                 }
+
+                
 
                 // if we got this far then there is a single project item selected
                 return true;
