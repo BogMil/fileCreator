@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.VisualStudio;
@@ -107,7 +109,7 @@ namespace fileCreator
                 string itemFullPath = null;
                 ((IVsProject)hierarchy).GetMkDocument(itemid, out itemFullPath);
                 var transformFileInfo = new FileInfo(itemFullPath);
-
+                var directory = transformFileInfo.Directory.Name;
                 // then check if the file is named 'web.config'
                 //bool isWebConfig = string.Compare("web.config", transformFileInfo.Name, StringComparison.OrdinalIgnoreCase) == 0;
 
@@ -120,9 +122,58 @@ namespace fileCreator
 
                 string startupPath = Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory())); ;
 
+                DTE dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
+                var activeProjects = dte.ActiveSolutionProjects as Array;
 
-                var myFile = File.Create(itemFullPath + "testFile.cs");
+                string projFullName="";
+                var projectToAddItemsTo = activeProjects.GetValue(0) as Project;
+                foreach (Project ap in activeProjects)
+                {
+                    projFullName = ap.FullName;
+                }
+
+                var file1Name = itemFullPath + "testFile.cs";
+                var file2Name = itemFullPath + "testFile2.cs";
+                var myFile = File.Create(file1Name);
+                var myFile2 = File.Create(file2Name);
                 myFile.Close();
+                myFile2.Close();
+
+                //Microsoft.Build.Evaluation.ProjectCollection projectCollection = new Microsoft.Build.Evaluation.ProjectCollection();
+
+                //var proj =
+                //    Microsoft.Build.Evaluation
+                //      .ProjectCollection.GlobalProjectCollection
+                //        .LoadedProjects.FirstOrDefault(pr => pr.FullPath == projFullName);
+
+                //if (proj == null)
+                //    proj = new Microsoft.Build.Evaluation.Project(projFullName);
+
+
+                IVsSolution solution = (IVsSolution)Package.GetGlobalService(typeof(IVsSolution));
+                Project proj=null;
+                foreach (Project project in GetProjects(solution))
+                {
+                    if(project.FullName == projFullName)
+                        proj = project;
+                }
+                if (proj == null)
+                    throw new Exception("Nema projekta");
+                //var proj = new Microsoft.Build.Evaluation.Project(projFullName);
+
+
+                //if (proj.Items.FirstOrDefault(i => i.EvaluatedInclude == file1Name) == null)
+                //    proj.AddItem("Compile", file1Name);
+                //if (proj.Items.FirstOrDefault(i => i.EvaluatedInclude == file2Name) == null)
+                //    proj.AddItem("Compile", file2Name);
+                proj.ProjectItems.AddFromFile(file1Name);
+                proj.ProjectItems.AddFromFile(file2Name);
+                //proj.AddItem("Compile", itemFullPath + "testFile.cs");
+                //proj.AddItem("Compile", itemFullPath + "testFile2.cs");
+                //proj.Save();
+
+
+
 
                 testTemplate page = new testTemplate();
                 String pageContent = page.TransformText();
@@ -166,7 +217,7 @@ namespace fileCreator
                 }
 
                 // multiple items are selected
-                //if (multiItemSelect != null) return false;
+                if (multiItemSelect != null) return false;
 
                 // there is a hierarchy root node selected, thus it is not a single item inside a project
 
@@ -181,30 +232,6 @@ namespace fileCreator
                 {
                     return false; // hierarchy is not a project inside the Solution if it does not have a ProjectID Guid
                 }
-
-                var x = hierarchy.GetActiveProjectContext();
-
-                var z = solution.GetProjrefOfProject(hierarchy, out var pbrstProjref);
-                solution.GetUniqueNameOfProject(hierarchy, out var ProjName);
-                solution.GetGuidOfProject(hierarchy, out Guid projectGuid);
-                solution.GetProjectOfGuid(projectGuid, out IVsHierarchy Project);
-
-                var proj = Project;
-                var guid = projectGuid;
-                var p = ProjName;
-                var u = pbrstProjref;
-
-                DTE dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
-                var activeProjects = dte.ActiveSolutionProjects as Array;
-
-                string projFullName;
-
-                foreach (Project ap in activeProjects)
-                {
-                    projFullName = ap.FullName;
-                }
-
-                
 
                 // if we got this far then there is a single project item selected
                 return true;
@@ -221,6 +248,51 @@ namespace fileCreator
                     Marshal.Release(hierarchyPtr);
                 }
             }
+        }
+
+        public static IEnumerable<EnvDTE.Project> GetProjects(IVsSolution solution)
+        {
+            foreach (IVsHierarchy hier in GetProjectsInSolution(solution))
+            {
+                EnvDTE.Project project = GetDTEProject(hier);
+                if (project != null)
+                    yield return project;
+            }
+        }
+
+        public static IEnumerable<IVsHierarchy> GetProjectsInSolution(IVsSolution solution)
+        {
+            return GetProjectsInSolution(solution, __VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION);
+        }
+
+        public static IEnumerable<IVsHierarchy> GetProjectsInSolution(IVsSolution solution, __VSENUMPROJFLAGS flags)
+        {
+            if (solution == null)
+                yield break;
+
+            IEnumHierarchies enumHierarchies;
+            Guid guid = Guid.Empty;
+            solution.GetProjectEnum((uint)flags, ref guid, out enumHierarchies);
+            if (enumHierarchies == null)
+                yield break;
+
+            IVsHierarchy[] hierarchy = new IVsHierarchy[1];
+            uint fetched;
+            while (enumHierarchies.Next(1, hierarchy, out fetched) == VSConstants.S_OK && fetched == 1)
+            {
+                if (hierarchy.Length > 0 && hierarchy[0] != null)
+                    yield return hierarchy[0];
+            }
+        }
+
+        public static EnvDTE.Project GetDTEProject(IVsHierarchy hierarchy)
+        {
+            if (hierarchy == null)
+                throw new ArgumentNullException("hierarchy");
+
+            object obj;
+            hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out obj);
+            return obj as EnvDTE.Project;
         }
     }
 }
