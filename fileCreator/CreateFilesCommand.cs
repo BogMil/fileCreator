@@ -51,6 +51,7 @@ namespace fileCreator
             {
                 var menuCommandID = new CommandID(CommandSet, CommandId);
                 var menuItem = new OleMenuCommand(this.MenuItemCallback, menuCommandID);
+                menuItem.BeforeQueryStatus += BeforeMenuItemCallback;
                 commandService.AddCommand(menuItem);
             }
         }
@@ -119,9 +120,6 @@ namespace fileCreator
                 menuCommand.Visible = true;
                 menuCommand.Enabled = true;
 
-
-                string startupPath = Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory())); ;
-
                 DTE dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
                 var activeProjects = dte.ActiveSolutionProjects as Array;
 
@@ -139,17 +137,6 @@ namespace fileCreator
                 myFile.Close();
                 myFile2.Close();
 
-                //Microsoft.Build.Evaluation.ProjectCollection projectCollection = new Microsoft.Build.Evaluation.ProjectCollection();
-
-                //var proj =
-                //    Microsoft.Build.Evaluation
-                //      .ProjectCollection.GlobalProjectCollection
-                //        .LoadedProjects.FirstOrDefault(pr => pr.FullPath == projFullName);
-
-                //if (proj == null)
-                //    proj = new Microsoft.Build.Evaluation.Project(projFullName);
-
-
                 IVsSolution solution = (IVsSolution)Package.GetGlobalService(typeof(IVsSolution));
                 Project proj=null;
                 foreach (Project project in GetProjects(solution))
@@ -159,29 +146,17 @@ namespace fileCreator
                 }
                 if (proj == null)
                     throw new Exception("Nema projekta");
-                //var proj = new Microsoft.Build.Evaluation.Project(projFullName);
 
-
-                //if (proj.Items.FirstOrDefault(i => i.EvaluatedInclude == file1Name) == null)
-                //    proj.AddItem("Compile", file1Name);
-                //if (proj.Items.FirstOrDefault(i => i.EvaluatedInclude == file2Name) == null)
-                //    proj.AddItem("Compile", file2Name);
                 proj.ProjectItems.AddFromFile(file1Name);
                 proj.ProjectItems.AddFromFile(file2Name);
-                //proj.AddItem("Compile", itemFullPath + "testFile.cs");
-                //proj.AddItem("Compile", itemFullPath + "testFile2.cs");
-                //proj.Save();
-
-
-
-
+  
                 testTemplate page = new testTemplate();
                 String pageContent = page.TransformText();
-                System.IO.File.WriteAllText(itemFullPath+"testFile.cs", pageContent);
+                File.WriteAllText(itemFullPath + "testFile.cs", pageContent);
 
                 VsShellUtilities.ShowMessageBox(
                 this.ServiceProvider,
-                startupPath,
+                "text",
                 "Titl",
                 OLEMSGICON.OLEMSGICON_INFO,
                 OLEMSGBUTTON.OLEMSGBUTTON_OK,
@@ -247,6 +222,38 @@ namespace fileCreator
                 {
                     Marshal.Release(hierarchyPtr);
                 }
+            }
+        }
+
+        private void BeforeMenuItemCallback(object sender, EventArgs e)
+        {
+            var menuCommand = sender as OleMenuCommand;
+            if (menuCommand != null)
+            {
+                // start by assuming that the menu will not be shown
+                menuCommand.Visible = false;
+                menuCommand.Enabled = false;
+
+                IVsHierarchy hierarchy = null;
+                uint itemid = VSConstants.VSITEMID_NIL;
+
+                if (!IsSingleProjectItemSelection(out hierarchy, out itemid)) return;
+                // Get the file path
+                string itemFullPath = null;
+                ((IVsProject)hierarchy).GetMkDocument(itemid, out itemFullPath);
+                var transformFileInfo = new FileInfo(itemFullPath);
+                var directoryName = transformFileInfo.Directory.Name;
+                // then check if the folder is named 'web.config'
+                bool isClickedOnController = string.Compare("Controllers", directoryName, StringComparison.OrdinalIgnoreCase) == 0;
+
+                //// if not leave the menu hidden
+                if (!isClickedOnController)
+                {
+                    return;
+                }
+
+                menuCommand.Visible = true;
+                menuCommand.Enabled = true;
             }
         }
 

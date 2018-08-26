@@ -25,10 +25,12 @@
           If you do not want an image next to your command, remove the Icon node /> -->
       <Button guid="guidCreateFilesCommandPackageCmdSet" id="CreateFilesCommandId" priority="0x0100" type="Button">
         <Parent guid="guidCreateFilesCommandPackageCmdSet" id="MyMenuGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Invoke CreateFilesCommand</ButtonText>
         </Strings>
+      
       </Button>
     </Buttons>
 
